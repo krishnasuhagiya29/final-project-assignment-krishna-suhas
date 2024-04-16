@@ -16,7 +16,7 @@ void write_data(int fd, unsigned char *data, int size);
 
 int main() {
     int fd;
-    char *dev = "/dev/i2c-1";
+    char *dev = "/dev/i2c-0";
 
     // Open the I2C device
     if ((fd = open(dev, O_RDWR)) < 0) {
