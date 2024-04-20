@@ -16,7 +16,7 @@ void write_data(int fd, unsigned char *data, int size);
 
 int main() {
     int fd;
-    char *dev = "/dev/i2c-0";
+    char *dev = "/dev/i2c-1";
 
     // Open the I2C device
     if ((fd = open(dev, O_RDWR)) < 0) {
@@ -25,7 +25,11 @@ int main() {
     }
 
     // Set the OLED display address
-    ioctl(fd, I2C_SLAVE, 0x78);
+    if (ioctl(fd, I2C_SLAVE, 0x3C) < 0) {
+        printf("Failed to set I2C slave address.\n");
+        close(fd);
+        exit(1);
+    }
 
     // Initialize the display
     init_display(fd);
@@ -83,7 +87,7 @@ void write_command(int fd, unsigned char cmd) {
     buffer[0] = 0x00;
     buffer[1] = cmd;
     if (write(fd, buffer, 2) != 2) {
-        printf("Error writing to I2C device\n");
+        printf("Error writing to I2C device (write_command)\n");
     }
 }
 
@@ -98,7 +102,7 @@ void write_data(int fd, unsigned char *data, int size) {
         buffer[i + 1] = data[i];
     }
     if (write(fd, buffer, size + 1) != size + 1) {
-        printf("Error writing to I2C device\n");
+        printf("Error writing to I2C device (write_data)\n");
     }
     free(buffer);
 }
