@@ -166,6 +166,7 @@ void write_data(int fd, unsigned char *data, int size) {
 }
 
 void clear_display(int fd) {
+<<<<<<< HEAD
   
   unsigned char zeros[SH1106_WIDTH];
   for (int i = 0; i < SH1106_WIDTH; i++) {
@@ -179,6 +180,17 @@ void clear_display(int fd) {
       write_command(fd, 0x10); // Set high column address
       write_data(fd, zeros, SH1106_WIDTH);
   }
+=======
+  for (int i = 0; i < SH1106_HEIGHT / 8; i++) {
+        write_command(fd, 0xB0 + i); // Set page address
+        write_command(fd, 0x00); // Set low column address
+        write_command(fd, 0x10); // Set high column address
+        for (int i = 0; i < SH1106_WIDTH; i++) {
+            write_data(fd, 0, 1);
+        }
+  
+    }
+>>>>>>> 30faedde46f5959518ad68505b9039121aed70c2
 }
 
 void print_text(int fd, int page, int col, const char *text) {
