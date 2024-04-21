@@ -103,8 +103,8 @@ int main() {
     // Clear Display
     clear_display(fd);
     
-    print_text(fd, 0, 0, "Speed Limit Assist"); 
-    print_text(fd, 1, 0, "Client RPi");
+    print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+    print_text(fd, 1, 0, " CLIENT RPI 3B");
     
     // Close the I2C device
     close(fd);
