@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 #define GPIO_PIN 4
-#define MOTOR_SCRIPT_PATH "motor"
+#define MOTOR_SCRIPT_PATH "motor.sh"
 
 int read_gpio(int pin) {
     char path[50];
