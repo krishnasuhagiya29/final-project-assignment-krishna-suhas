@@ -52,6 +52,9 @@ int main() {
 
     // Initialize and clear display (assuming these functions are defined correctly)
     init_display(fd);
+    char command[100];
+    snprintf(command, sizeof(command), "%s start 0", MOTOR_SCRIPT_PATH);
+    system(command);
 
     while (1) {
         gpio_state = read_sw_gpio(GPIO_PIN);
@@ -61,9 +64,6 @@ int main() {
             return 1;
         }
         
-        char command[100];
-        snprintf(command, sizeof(command), "%s start 0", MOTOR_SCRIPT_PATH);
-        system(command);
 
         // Check if the GPIO state has changed
         if (gpio_state != last_gpio_state) {
@@ -97,7 +97,7 @@ int main() {
         }
 
         // Sleep for a short time to prevent high CPU usage
-        usleep(100000); // 100 milliseconds
+        usleep(1000000); // 1000 milliseconds
     }
 
     return 0;
