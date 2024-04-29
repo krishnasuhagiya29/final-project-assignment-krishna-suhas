@@ -64,13 +64,13 @@ int main() {
         // Check if the GPIO state has changed
         if (gpio_state != last_gpio_state) {
             char command[100];
+            snprintf(command, sizeof(command), "%s start 20000", MOTOR_SCRIPT_PATH);
+            system(command);
 
             if (gpio_state == 1) {
                 // Start the motor with a high duty cycle if not already high
                 printf("High Speed\n");
                 print_text(fd, 2, 0, " High Speed");
-                snprintf(command, sizeof(command), "%s start 20000", MOTOR_SCRIPT_PATH);
-                system(command);
 
                 // Optionally adjust duty cycle to a high value
                 snprintf(command, sizeof(command), "%s adjust 18000", MOTOR_SCRIPT_PATH);
@@ -79,8 +79,6 @@ int main() {
                 // Start the motor with a low duty cycle if not already low
                 printf("Low Speed\n");
                 print_text(fd, 3, 0, " Low Speed");
-                snprintf(command, sizeof(command), "%s start 10000", MOTOR_SCRIPT_PATH);
-                system(command);
 
                 // Optionally adjust duty cycle to a lower value
                 snprintf(command, sizeof(command), "%s adjust 8000", MOTOR_SCRIPT_PATH);
