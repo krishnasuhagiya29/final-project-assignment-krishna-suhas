@@ -18,7 +18,6 @@
 #include "speed_control.h"
 
 #define PORT 5000
-#define SERVER_IP_ADDR "10.0.0.91"
 #define GPIO_PIN 4
 #define MOTOR_SCRIPT_PATH "motor.sh"
 
@@ -71,11 +70,16 @@ void sig_handler(int signal_number) {
     exit(EXIT_SUCCESS);
 }
 
-int main() {
+int main(int argc, char **argv) {
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <server_ip>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    const char *server_ip = argv[1];
 
     system("modprobe i2c-dev");
     unsigned char speed;
-    int gpio_state = read_sw_gpio(GPIO_PIN);
+    int gpio_state;
     int last_gpio_state = -1; // To track changes in GPIO state
     struct sockaddr_in serv_addr;
     int fd; // This should be the I2C file descriptor
@@ -123,7 +127,7 @@ int main() {
     serv_addr.sin_port = htons(PORT);
 
     // Convert IPv4 and IPv6 addresses from text to binary
-    if (inet_pton(AF_INET, SERVER_IP_ADDR, &serv_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, server_ip, &serv_addr.sin_addr) <= 0) {
         perror("Invalid address/ Address not supported");
         exit(EXIT_FAILURE);
     }
