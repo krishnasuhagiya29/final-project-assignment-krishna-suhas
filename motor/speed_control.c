@@ -52,10 +52,6 @@ int main() {
 
     // Initialize and clear display (assuming these functions are defined correctly)
     init_display(fd);
-    clear_display(fd);
-    
-    print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
-    print_text(fd, 1, 0, " CLIENT RPI 3B");
 
     while (1) {
         gpio_state = read_sw_gpio(GPIO_PIN);
@@ -68,12 +64,15 @@ int main() {
         // Check if the GPIO state has changed
         if (gpio_state != last_gpio_state) {
             char command[100];
-            snprintf(command, sizeof(command), "%s start 20000", MOTOR_SCRIPT_PATH);
+            snprintf(command, sizeof(command), "%s start 0", MOTOR_SCRIPT_PATH);
             system(command);
 
             if (gpio_state == 1) {
                 // Start the motor with a high duty cycle if not already high
                 printf("High Speed\n");
+                clear_display(fd);
+                print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+                print_text(fd, 1, 0, " CLIENT RPI 3B");
                 print_text(fd, 2, 0, " High Speed");
 
                 // Optionally adjust duty cycle to a high value
@@ -82,7 +81,10 @@ int main() {
             } else {
                 // Start the motor with a low duty cycle if not already low
                 printf("Low Speed\n");
-                print_text(fd, 3, 0, " Low Speed");
+                clear_display(fd);
+                print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+                print_text(fd, 1, 0, " CLIENT RPI 3B");
+                print_text(fd, 2, 0, " Low Speed");
 
                 // Optionally adjust duty cycle to a lower value
                 snprintf(command, sizeof(command), "%s adjust 8000", MOTOR_SCRIPT_PATH);
