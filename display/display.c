@@ -5,6 +5,7 @@
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <string.h>
+#include "display.h"
 
 // SH1106 OLED display width and height
 #define SH1106_WIDTH  128
@@ -73,13 +74,7 @@ unsigned char font[96][5] = {
     {0x71, 0x49, 0x45, 0x43, 0x71},  // Z
 };
 
-// Function declarations
-void init_display(int fd);
-void write_command(int fd, unsigned char cmd);
-void write_data(int fd, unsigned char *data, int size);
-void clear_display(int fd);
-void print_text(int fd, int page, int col, const char *text);
-
+/*
 int main() {
     int fd;
     char *dev = "/dev/i2c-1";
@@ -110,6 +105,7 @@ int main() {
     close(fd);
     return 0;
 }
+*/
 
 void init_display(int fd) {
     // Initialization sequence for SH1106
@@ -170,9 +166,8 @@ void clear_display(int fd) {
   for (int i = 0; i < SH1106_WIDTH; i++) {
       zeros[i] = 0x00;
   }
-
-  // Write pattern to the display
-  for (int i = 0; i < SH1106_HEIGHT / 8; i++) {
+  
+  for (int i = 0; i <= SH1106_HEIGHT / 8; i++) {
       write_command(fd, 0xB0 + i); // Set page address
       write_command(fd, 0x00); // Set low column address
       write_command(fd, 0x10); // Set high column address
