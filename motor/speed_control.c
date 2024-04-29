@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include <unistd.h>
-#include "speed_control.h"
+#include <linux/i2c-dev.h>
+#include <sys/ioctl.h>
+#include <string.h>
 #include "display.h"
+#include "speed_control.h"
 
 #define GPIO_PIN 4
 #define MOTOR_SCRIPT_PATH "motor.sh"
