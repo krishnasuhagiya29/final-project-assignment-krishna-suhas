@@ -19,6 +19,8 @@
 
 #define PORT 5000
 #define SERVER_IP_ADDR "10.0.0.91"
+#define GPIO_PIN 4
+#define MOTOR_SCRIPT_PATH "motor.sh"
 
 bool st_kill_process = false;
 int client_fd = -1;
@@ -70,6 +72,11 @@ void sig_handler(int signal_number) {
 }
 
 int main() {
+
+    system("modprobe i2c-dev");
+    unsigned char speed;
+    int gpio_state = read_sw_gpio(GPIO_PIN);
+    int last_gpio_state = -1; // To track changes in GPIO state
     struct sockaddr_in serv_addr;
     int fd; // This should be the I2C file descriptor
     char *dev = "/dev/i2c-1";
@@ -90,6 +97,12 @@ int main() {
     // Initialize and clear display (assuming these functions are defined correctly)
     init_display(fd);
     clear_display(fd);
+    
+    
+    init_sw_gpio4();
+    char command[100];
+    snprintf(command, sizeof(command), "%s start 0", MOTOR_SCRIPT_PATH);
+    system(command);
 
     // Initialize syslog
     openlog(NULL, LOG_CONS | LOG_PID | LOG_PERROR, LOG_USER);
@@ -123,10 +136,55 @@ int main() {
 
     while (!st_kill_process) {
         // Get speed from the server
-        if (get_speed() == -1) {
+        speed = get_speed();
+        if (speed == -1) {
             syslog(LOG_ERR, "Failed to get speed from server");
             cleanup_on_exit();
             exit(EXIT_FAILURE);
+        }
+        
+        
+        gpio_state = read_sw_gpio(GPIO_PIN);
+
+        if (gpio_state < 0) {
+            printf("Error reading GPIO pin\n");
+            return 1;
+        }
+        
+        if ((speed == 65) && (gpio_state == 0)) {
+            clear_display(fd);
+            print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+            print_text(fd, 1, 0, " CLIENT RPI 3B");
+            print_text(fd, 2, 0, " SPEED MAINTAINED");
+        } else if ((speed == 90) && (gpio_state == 0)) {
+            clear_display(fd);
+            print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+            print_text(fd, 1, 0, " WARNING");
+            print_text(fd, 2, 0, " LOW SPEED");
+        } else if ((speed == 90) && (gpio_state == 1)) {
+            clear_display(fd);
+            print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+            print_text(fd, 1, 0, " CLIENT RPI 3B");
+            print_text(fd, 2, 0, " SPEED MAINTAINED");
+        } else if ((speed == 65) && (gpio_state == 1)) {
+            clear_display(fd);
+            print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+            print_text(fd, 1, 0, " WARNING");
+            print_text(fd, 2, 0, " HIGH SPEED");
+        }
+
+        // Check if the GPIO state has changed
+        if (gpio_state != last_gpio_state) {
+
+            if (gpio_state == 1) {
+                snprintf(command, sizeof(command), "%s adjust 18000", MOTOR_SCRIPT_PATH);
+                system(command);
+            } else {
+                snprintf(command, sizeof(command), "%s adjust 8000", MOTOR_SCRIPT_PATH);
+                system(command);
+            }
+            
+            last_gpio_state = gpio_state;
         }
     }
 

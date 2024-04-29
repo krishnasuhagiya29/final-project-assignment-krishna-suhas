@@ -1,9 +1,9 @@
 # Compiler and CFlAGS selection 'CROSS_COMPILE' is used to set custom arm compiler
 CC := $(CROSS_COMPILE)gcc
-CFLAGS := -Wall -Werror
+CFLAGS := -Wall -Werror -I../display -I../motor
 
 # Sets the source as display.c and object as display.o
-SRC := client.c
+SRC := client.c ../motor/speed_control.c ../display/display.c
 OBJ := $(SRC:.c=.o)
 
 # Behaves as alias to object file

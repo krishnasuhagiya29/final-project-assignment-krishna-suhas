@@ -29,6 +29,7 @@ int read_sw_gpio(int pin) {
     return value;
 }
 
+/*
 int main() {
     init_sw_gpio4();
     int gpio_state = read_sw_gpio(GPIO_PIN);
@@ -97,8 +98,9 @@ int main() {
         }
 
         // Sleep for a short time to prevent high CPU usage
-        usleep(1000000); // 1000 milliseconds
+        usleep(50000); // 50 milliseconds
     }
 
     return 0;
 }
+*/
