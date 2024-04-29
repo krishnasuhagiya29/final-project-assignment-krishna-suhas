@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "speed_control.h"
+#include "display.h"
 
 #define GPIO_PIN 4
 #define MOTOR_SCRIPT_PATH "motor.sh"
@@ -28,6 +29,29 @@ int main() {
     init_sw_gpio4();
     int gpio_state = read_sw_gpio(GPIO_PIN);
     int last_gpio_state = -1; // To track changes in GPIO state
+    
+    int fd; // This should be the I2C file descriptor
+    char *dev = "/dev/i2c-1";
+
+    // Open the I2C device
+    if ((fd = open(dev, O_RDWR)) < 0) {
+        perror("Failed to open the I2C device");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set the OLED display address
+    if (ioctl(fd, I2C_SLAVE, 0x3C) < 0) {
+        perror("Failed to set I2C slave address");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialize and clear display (assuming these functions are defined correctly)
+    init_display(fd);
+    clear_display(fd);
+    
+    print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+    print_text(fd, 1, 0, " CLIENT RPI 3B");
 
     while (1) {
         gpio_state = read_sw_gpio(GPIO_PIN);
@@ -44,6 +68,7 @@ int main() {
             if (gpio_state == 1) {
                 // Start the motor with a high duty cycle if not already high
                 printf("High Speed\n");
+                print_text(fd, 2, 0, " High Speed");
                 snprintf(command, sizeof(command), "%s start 20000", MOTOR_SCRIPT_PATH);
                 system(command);
 
@@ -53,6 +78,7 @@ int main() {
             } else {
                 // Start the motor with a low duty cycle if not already low
                 printf("Low Speed\n");
+                print_text(fd, 3, 0, " Low Speed");
                 snprintf(command, sizeof(command), "%s start 10000", MOTOR_SCRIPT_PATH);
                 system(command);
 
