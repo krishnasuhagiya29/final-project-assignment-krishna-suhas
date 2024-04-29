@@ -60,12 +60,13 @@ int main() {
             printf("Error reading GPIO pin\n");
             return 1;
         }
+        
+        char command[100];
+        snprintf(command, sizeof(command), "%s start 0", MOTOR_SCRIPT_PATH);
+        system(command);
 
         // Check if the GPIO state has changed
         if (gpio_state != last_gpio_state) {
-            char command[100];
-            snprintf(command, sizeof(command), "%s start 0", MOTOR_SCRIPT_PATH);
-            system(command);
 
             if (gpio_state == 1) {
                 // Start the motor with a high duty cycle if not already high
@@ -73,7 +74,7 @@ int main() {
                 clear_display(fd);
                 print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
                 print_text(fd, 1, 0, " CLIENT RPI 3B");
-                print_text(fd, 2, 0, " High Speed");
+                print_text(fd, 2, 0, " HIGH SPEED");
 
                 // Optionally adjust duty cycle to a high value
                 snprintf(command, sizeof(command), "%s adjust 18000", MOTOR_SCRIPT_PATH);
@@ -84,7 +85,7 @@ int main() {
                 clear_display(fd);
                 print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
                 print_text(fd, 1, 0, " CLIENT RPI 3B");
-                print_text(fd, 2, 0, " Low Speed");
+                print_text(fd, 2, 0, " LOW SPEED");
 
                 // Optionally adjust duty cycle to a lower value
                 snprintf(command, sizeof(command), "%s adjust 8000", MOTOR_SCRIPT_PATH);
