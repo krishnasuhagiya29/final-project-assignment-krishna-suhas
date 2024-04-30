@@ -19,6 +19,8 @@
 
 #define PORT 5000
 #define GPIO_PIN 4
+#define RED 21
+#define YELLOW 20
 #define MOTOR_SCRIPT_PATH "motor.sh"
 
 bool st_kill_process = false;
@@ -29,6 +31,28 @@ void sig_handler(int signal_number);
 int get_speed();
 void connect_to_server(const char* server_ip);
 void gpio_stat(void);
+int write_led_gpio(int pin, int value);
+void init_led_gpios();
+
+void init_led_gpios() {
+    system("echo 21 > /sys/class/gpio/export");
+    system("echo out > /sys/class/gpio/gpio4/direction");
+    system("echo 20 > /sys/class/gpio/export");
+    system("echo out > /sys/class/gpio/gpio4/direction");
+}
+
+int write_led_gpio(int pin, int value) {
+    char path[50];
+    snprintf(path, sizeof(path), "/sys/class/gpio/gpio%d/value", pin);
+    FILE *file = fopen(path, "w");
+    if (file == NULL) {
+        perror("Failed to open GPIO pin");
+        return -1;
+    }
+    fprintf(file, "%d", value); // Write 0 or 1 to the GPIO value file
+    fclose(file);
+    return 0; // Return 0 on success
+}
 
 int get_speed() {
     unsigned char speed = 0;
@@ -83,36 +107,6 @@ void connect_to_server(const char* server_ip) {
     }
 }
 
-
-void gpio_stat(void) {
-
-      int gpio_state;
-      static volatile int last_gpio_state = 0; // To track changes in GPIO state
-
-      gpio_state = read_sw_gpio(GPIO_PIN);
-      // Check if the GPIO state has changed
-      if (gpio_state != last_gpio_state) {
-          print_text(fd, 4, 0, " SWITCH TOGGLED");
-          if (gpio_state == 1) {
-              snprintf(command, sizeof(command), "%s adjust 18000", MOTOR_SCRIPT_PATH);
-              system(command);
-          } else {
-              snprintf(command, sizeof(command), "%s adjust 4000", MOTOR_SCRIPT_PATH);
-              system(command);
-          }
-          
-          last_gpio_state = gpio_state;
-          break;
-      }
-/*
-      if (gpio_state < 0) {
-          printf("Error reading GPIO pin\n");
-          return 1;
-      }
-*/
-}
-
-
 int main(int argc, char **argv) {
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <server_ip>\n", argv[0]);
@@ -149,6 +143,8 @@ int main(int argc, char **argv) {
     print_text(fd, 1, 0, " CLIENT RPI 3B");
     
     init_sw_gpio4();
+    init_led_gpios();
+    
     char command[100];
     snprintf(command, sizeof(command), "%s start 5000", MOTOR_SCRIPT_PATH);
     system(command);
@@ -234,6 +230,7 @@ int main(int argc, char **argv) {
             print_text(fd, 2, 0, " SPEED LIMIT: 60");
             print_text(fd, 3, 0, " CURRENT SPEED: 60");
         } else if ((speed == 80) && (gpio_state == 0)) {
+            write_led_gpio(YELLOW, 1);
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, " WARNING LOW SPEED");
@@ -252,12 +249,14 @@ int main(int argc, char **argv) {
             print_text(fd, 2, 0, " SPEED LIMIT: 60");
             print_text(fd, 3, 0, " CURRENT SPEED: 80");
         } else if ((speed < 60) && (gpio_state == 0)) {
+            write_led_gpio(YELLOW, 1);
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, " WARNING LOW SPEED");
             print_text(fd, 2, 0, (const char*)speed_print);
             print_text(fd, 3, 0, " CURRENT SPEED: 60");
         } else if ((speed < 80) && (gpio_state == 1)) {
+            write_led_gpio(YELLOW, 1);
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, " WARNING LOW SPEED");
