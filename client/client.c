@@ -137,10 +137,7 @@ int main(int argc, char **argv) {
             cleanup_on_exit();
             exit(EXIT_FAILURE);
         } else if (speed == 0) {
-            if (connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-            perror("Connection Failed");
-            exit(EXIT_FAILURE);
-            }
+            connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
         }
         
         gpio_state = read_sw_gpio(GPIO_PIN);
@@ -160,7 +157,7 @@ int main(int argc, char **argv) {
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, " WARNING");
-            print_text(fd, 2, 0, " LOW SPEED");
+            print_text(fd, 2, 0, " LOW SPEED: 60");
             print_text(fd, 3, 0, " 80 REQUIRED");
         } else if ((speed == 80) && (gpio_state == 1)) {
             clear_display(fd);
@@ -172,7 +169,7 @@ int main(int argc, char **argv) {
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, " WARNING");
-            print_text(fd, 2, 0, " HIGH SPEED");
+            print_text(fd, 2, 0, " HIGH SPEED: 80");
             print_text(fd, 3, 0, " 60 REQUIRED");
         }
 
