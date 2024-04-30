@@ -149,21 +149,25 @@ int main(int argc, char **argv) {
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, " CLIENT RPI 3B");
             print_text(fd, 2, 0, " SPEED MAINTAINED");
+            print_text(fd, 3, 0, " 60");
         } else if ((speed == 80) && (gpio_state == 0)) {
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, " WARNING");
             print_text(fd, 2, 0, " LOW SPEED");
+            print_text(fd, 3, 0, " 80 REQUIRED");
         } else if ((speed == 80) && (gpio_state == 1)) {
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, " CLIENT RPI 3B");
             print_text(fd, 2, 0, " SPEED MAINTAINED");
+            print_text(fd, 3, 0, " 80");
         } else if ((speed == 60) && (gpio_state == 1)) {
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, " WARNING");
             print_text(fd, 2, 0, " HIGH SPEED");
+            print_text(fd, 3, 0, " 60 REQUIRED");
         }
 
         // Check if the GPIO state has changed
