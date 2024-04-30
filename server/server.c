@@ -7,7 +7,7 @@
 #include <syslog.h>
 #include <time.h> // For sleep function
 
-#define PORT 9000
+#define PORT 5000
 
 void error(const char *msg)
 {
@@ -21,11 +21,19 @@ int main(int argc, char *argv[])
     socklen_t clilen;
     struct sockaddr_in serv_addr, cli_addr;
     int n;
+    unsigned char speed;
 
     if (argc != 2) {
-        fprintf(stderr, "Usage: %s <data>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <speed>\n", argv[0]);
         exit(1);
     }
+
+    int input_speed = atoi(argv[1]);
+    if (input_speed < 0 || input_speed > 255) {
+        fprintf(stderr, "Speed must be a number between 0 and 255\n");
+        exit(1);
+    }
+    speed = (unsigned char) input_speed;
 
     // Delay before starting a new instance
     sleep(1);
@@ -57,7 +65,7 @@ int main(int argc, char *argv[])
         error("ERROR on accept");
 
     // Send the data provided as argument
-    n = write(newsockfd, argv[1], strlen(argv[1]));
+	n = write(newsockfd, &speed, sizeof(speed));
     if (n < 0)
         error("ERROR writing to socket");
 

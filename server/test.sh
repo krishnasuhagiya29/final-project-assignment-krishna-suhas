@@ -4,8 +4,8 @@
 
 pushd "$(dirname "$0")"
 target=localhost
-port=9000
-timeout_duration=10
+port=5000
+timeout_duration=12
 
 echo "Connecting to server ${target} on port ${port}"
 echo "Timeout duration set to ${timeout_duration} seconds"
