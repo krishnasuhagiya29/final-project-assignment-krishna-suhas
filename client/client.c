@@ -27,6 +27,7 @@ int client_fd = -1;
 void cleanup_on_exit();
 void sig_handler(int signal_number);
 int get_speed();
+void connect_to_server(const char* server_ip);
 
 int get_speed() {
     unsigned char speed = 0;
@@ -58,6 +59,30 @@ void sig_handler(int signal_number) {
     cleanup_on_exit();
     exit(EXIT_SUCCESS);
 }
+
+void connect_to_server(const char* server_ip) {
+    struct sockaddr_in serv_addr;
+
+    client_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (client_fd < 0) {
+        perror("Socket creation error");
+        exit(EXIT_FAILURE);
+    }
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+    if (inet_pton(AF_INET, server_ip, &serv_addr.sin_addr) <= 0) {
+        perror("Invalid address/ Address not supported");
+        exit(EXIT_FAILURE);
+    }
+
+    if (connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("Connection Failed");
+        close(client_fd);
+        client_fd = -1;
+    }
+}
+
 
 int main(int argc, char **argv) {
     if (argc < 2) {
@@ -130,14 +155,22 @@ int main(int argc, char **argv) {
     }
 
     while (!st_kill_process) {
+    
+        if (client_fd == -1) {
+            printf("Attempting to reconnect...\n");
+            connect_to_server(server_ip);
+            if (client_fd == -1) {
+                sleep(1); // Sleep for a second before trying again
+                continue;
+            }
+        }
+        
         // Get speed from the server
         speed = get_speed();
-        if (speed == -1) {
-            syslog(LOG_ERR, "Failed to get speed from server");
-            cleanup_on_exit();
-            exit(EXIT_FAILURE);
-        } else if (speed == 0) {
-            connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+        if (speed <= 0) {
+            close(client_fd);
+            client_fd = -1;
+            continue;
         }
         
         gpio_state = read_sw_gpio(GPIO_PIN);
@@ -171,14 +204,16 @@ int main(int argc, char **argv) {
             print_text(fd, 1, 0, " WARNING");
             print_text(fd, 2, 0, " HIGH SPEED: 80");
             print_text(fd, 3, 0, " 60 REQUIRED");
+        } else if ((speed < 60) && (gpio_state == 0)) {
+            clear_display(fd);
+            print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+            print_text(fd, 1, 0, " WARNING");
+            print_text(fd, 2, 0, " HIGH SPEED: 60");
         }
 
         // Check if the GPIO state has changed
         if (gpio_state != last_gpio_state) {
-            clear_display(fd);
-            print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
-            print_text(fd, 1, 0, " CLIENT RPI 3B");
-            print_text(fd, 2, 0, " SWITCH TOGGLED");
+            print_text(fd, 4, 0, " SWITCH TOGGLED");
             if (gpio_state == 1) {
                 snprintf(command, sizeof(command), "%s adjust 18000", MOTOR_SCRIPT_PATH);
                 system(command);
