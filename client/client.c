@@ -29,7 +29,7 @@ void sig_handler(int signal_number);
 int get_speed();
 
 int get_speed() {
-    unsigned char speed = 0; // Change to read only one byte
+    unsigned char speed = 0;
     ssize_t retval;
 
     // Attempt to read one byte from the socket
@@ -40,18 +40,12 @@ int get_speed() {
     } else if (retval == 0) {
         printf("Connection closed by server\n");
         return -1; // Server closed the connection
+    } else if (retval != 1) {
+        syslog(LOG_WARNING, "Partial data received. Expected 1 byte, received %ld bytes.", retval);
+        return -1; // Incorrect amount of data received
     }
 
-    syslog(LOG_INFO, "Speed received as %d\n", speed);
-
-    // Send Acknowledgement
-    const char *ackMsg = "Received";
-    retval = write(client_fd, ackMsg, strlen(ackMsg) + 1); // Ensure null terminator is included
-    if (retval < 0) {
-        perror("Failed to send acknowledgement");
-        return -1;
-    }
-
+    syslog(LOG_INFO, "Speed received as %d", speed);
     return speed; // Return the speed received
 }
 
@@ -76,12 +70,14 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
     const char *server_ip = argv[1];
-
-    system("modprobe i2c-dev");
-    unsigned char speed;
-    int gpio_state;
-    int last_gpio_state = -1; // To track changes in GPIO state
+    
     struct sockaddr_in serv_addr;
+    unsigned char speed;
+/*
+    system("modprobe i2c-dev");
+    
+    // int gpio_state;
+    // int last_gpio_state = -1; // To track changes in GPIO state
     int fd; // This should be the I2C file descriptor
     char *dev = "/dev/i2c-1";
 
@@ -107,7 +103,7 @@ int main(int argc, char **argv) {
     char command[100];
     snprintf(command, sizeof(command), "%s start 0", MOTOR_SCRIPT_PATH);
     system(command);
-
+*/
     // Initialize syslog
     openlog(NULL, LOG_CONS | LOG_PID | LOG_PERROR, LOG_USER);
 
@@ -147,8 +143,7 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
         
-        
-        gpio_state = read_sw_gpio(GPIO_PIN);
+/*        gpio_state = read_sw_gpio(GPIO_PIN);
 
         if (gpio_state < 0) {
             printf("Error reading GPIO pin\n");
@@ -189,7 +184,7 @@ int main(int argc, char **argv) {
             }
             
             last_gpio_state = gpio_state;
-        }
+        } */
     }
 
     cleanup_on_exit();
