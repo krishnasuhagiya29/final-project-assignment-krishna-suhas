@@ -36,9 +36,9 @@ void init_led_gpios();
 
 void init_led_gpios() {
     system("echo 21 > /sys/class/gpio/export");
-    system("echo out > /sys/class/gpio/gpio4/direction");
+    system("echo out > /sys/class/gpio/gpio21/direction");
     system("echo 20 > /sys/class/gpio/export");
-    system("echo out > /sys/class/gpio/gpio4/direction");
+    system("echo out > /sys/class/gpio/gpio20/direction");
 }
 
 int write_led_gpio(int pin, int value) {
@@ -139,8 +139,12 @@ int main(int argc, char **argv) {
     // Initialize and clear display (assuming these functions are defined correctly)
     init_display(fd);
     clear_display(fd);
-    print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
-    print_text(fd, 1, 0, " CLIENT RPI 3B");
+    print_text(fd, 0, 0, " INITIATING....."); 
+    usleep(500000);
+    print_text(fd, 1, 0, " SPEED LIMIT ASSIST"); 
+    usleep(500000);
+    print_text(fd, 3, 0, " CLIENT RPI 3B");
+    usleep(500000);
     
     init_sw_gpio4();
     init_led_gpios();
@@ -186,7 +190,9 @@ int main(int argc, char **argv) {
       gpio_state = read_sw_gpio(GPIO_PIN);
       // Check if the GPIO state has changed
       if (gpio_state != last_gpio_state) {
-          print_text(fd, 4, 0, " SWITCH TOGGLED");
+          write_led_gpio(RED, 0);
+          write_led_gpio(YELLOW, 0);
+          print_text(fd, 5, 0, " SWITCH TOGGLED");
           if (gpio_state == 1) {
               snprintf(command, sizeof(command), "%s adjust 18000", MOTOR_SCRIPT_PATH);
               system(command);
@@ -221,47 +227,50 @@ int main(int argc, char **argv) {
             continue;
         }
         
-        snprintf(speed_print, sizeof(speed_print), "SPEED LIMIT: %d", speed);
+        snprintf(speed_print, sizeof(speed_print), " SPEED LIMIT: %d", speed);
         
         if ((speed == 60) && (gpio_state == 0)) {
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
-            print_text(fd, 1, 0, " CLIENT RPI 3B");
-            print_text(fd, 2, 0, " SPEED LIMIT: 60");
+            print_text(fd, 2, 0, " SPEED LIMIT:   60");
             print_text(fd, 3, 0, " CURRENT SPEED: 60");
         } else if ((speed == 80) && (gpio_state == 0)) {
             write_led_gpio(YELLOW, 1);
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
-            print_text(fd, 1, 0, " WARNING LOW SPEED");
-            print_text(fd, 2, 0, " SPEED LIMIT: 80");
-            print_text(fd, 3, 0, " CURRENT SPEED: 60");
+            print_text(fd, 1, 0, " SPEED LIMIT: 80");
+            print_text(fd, 2, 0, " CURRENT SPEED: 60");
+            print_text(fd, 3, 0, " WARNING: LOW SPEED");
+            print_text(fd, 4, 0, " INCREASE SPEED");
         } else if ((speed == 80) && (gpio_state == 1)) {
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
-            print_text(fd, 1, 0, " CLIENT RPI 3B");
-            print_text(fd, 2, 0, " SPEED LIMIT: 80");
-            print_text(fd, 3, 0, " CURRENT SPEED: 80");
+            print_text(fd, 1, 0, " SPEED LIMIT: 80");
+            print_text(fd, 2, 0, " CURRENT SPEED: 80");
         } else if ((speed == 60) && (gpio_state == 1)) {
+            write_led_gpio(RED, 1);
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
-            print_text(fd, 1, 0, " WARNING HIGH SPEED");
-            print_text(fd, 2, 0, " SPEED LIMIT: 60");
-            print_text(fd, 3, 0, " CURRENT SPEED: 80");
+            print_text(fd, 1, 0, " SPEED LIMIT:   60");
+            print_text(fd, 2, 0, " CURRENT SPEED: 80");
+            print_text(fd, 3, 0, " WARNING: HIGH SPEED");
+            print_text(fd, 4, 0, " REDUCE SPEED");
         } else if ((speed < 60) && (gpio_state == 0)) {
             write_led_gpio(YELLOW, 1);
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
-            print_text(fd, 1, 0, " WARNING LOW SPEED");
-            print_text(fd, 2, 0, (const char*)speed_print);
-            print_text(fd, 3, 0, " CURRENT SPEED: 60");
+            print_text(fd, 1, 0, (const char*)speed_print);
+            print_text(fd, 2, 0, " CURRENT SPEED: 60");
+            print_text(fd, 3, 0, " WARNING: HIGH SPEED");
+            print_text(fd, 4, 0, " REDUCE SPEED");
         } else if ((speed < 80) && (gpio_state == 1)) {
-            write_led_gpio(YELLOW, 1);
+            write_led_gpio(RED, 1);
             clear_display(fd);
-            print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
-            print_text(fd, 1, 0, " WARNING LOW SPEED");
-            print_text(fd, 2, 0, (const char*)speed_print);
-            print_text(fd, 3, 0, " CURRENT SPEED: 80");
+            print_text(fd, 0, 0, " SPEED LIMIT ASSIST");
+            print_text(fd, 1, 0, (const char*)speed_print);
+            print_text(fd, 2, 0, " CURRENT SPEED: 80");
+            print_text(fd, 3, 0, " WARNING: HIGH SPEED");
+            print_text(fd, 4, 0, " REDUCE SPEED");
         }
         
         usleep(50000);
