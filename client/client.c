@@ -37,9 +37,6 @@ int get_speed() {
     if (retval < 0) {
         perror("Failed to read from socket");
         return -1; // Indicate error in reading
-    } else if (retval == 0) {
-        printf("Connection closed by server\n");
-        return -1; // Server closed the connection
     } else if (retval != 1) {
         syslog(LOG_WARNING, "Partial data received. Expected 1 byte, received %ld bytes.", retval);
         return -1; // Incorrect amount of data received
@@ -183,7 +180,9 @@ int main(int argc, char **argv) {
             }
             
             last_gpio_state = gpio_state;
-        } 
+        }
+        
+        usleep(100000);
     }
 
     cleanup_on_exit();
