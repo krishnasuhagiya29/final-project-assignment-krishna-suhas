@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     system("modprobe i2c-dev");
     
     int gpio_state;
-    int last_gpio_state = -1; // To track changes in GPIO state
+    int last_gpio_state = 0; // To track changes in GPIO state
     int fd; // This should be the I2C file descriptor
     char *dev = "/dev/i2c-1";
 
