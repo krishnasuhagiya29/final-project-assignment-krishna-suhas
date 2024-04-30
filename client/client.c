@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
     
     init_sw_gpio4();
     char command[100];
-    snprintf(command, sizeof(command), "%s start 0", MOTOR_SCRIPT_PATH);
+    snprintf(command, sizeof(command), "%s start 5000", MOTOR_SCRIPT_PATH);
     system(command);
 
     // Initialize syslog
