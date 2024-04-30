@@ -77,7 +77,6 @@ void connect_to_server(const char* server_ip) {
     }
 
     if (connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        perror("Connection Failed");
         close(client_fd);
         client_fd = -1;
     }
@@ -155,6 +154,26 @@ int main(int argc, char **argv) {
     }
 
     while (!st_kill_process) {
+        gpio_state = read_sw_gpio(GPIO_PIN);
+        
+        // Check if the GPIO state has changed
+        if (gpio_state != last_gpio_state) {
+            print_text(fd, 4, 0, " SWITCH TOGGLED");
+            if (gpio_state == 1) {
+                snprintf(command, sizeof(command), "%s adjust 18000", MOTOR_SCRIPT_PATH);
+                system(command);
+            } else {
+                snprintf(command, sizeof(command), "%s adjust 8000", MOTOR_SCRIPT_PATH);
+                system(command);
+            }
+            
+            last_gpio_state = gpio_state;
+        }
+
+        if (gpio_state < 0) {
+            printf("Error reading GPIO pin\n");
+            return 1;
+        }
     
         if (client_fd == -1) {
             printf("Attempting to reconnect...\n");
@@ -171,13 +190,6 @@ int main(int argc, char **argv) {
             close(client_fd);
             client_fd = -1;
             continue;
-        }
-        
-        gpio_state = read_sw_gpio(GPIO_PIN);
-
-        if (gpio_state < 0) {
-            printf("Error reading GPIO pin\n");
-            return 1;
         }
         
         if ((speed == 60) && (gpio_state == 0)) {
@@ -209,20 +221,11 @@ int main(int argc, char **argv) {
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, " WARNING");
             print_text(fd, 2, 0, " HIGH SPEED: 60");
-        }
-
-        // Check if the GPIO state has changed
-        if (gpio_state != last_gpio_state) {
-            print_text(fd, 4, 0, " SWITCH TOGGLED");
-            if (gpio_state == 1) {
-                snprintf(command, sizeof(command), "%s adjust 18000", MOTOR_SCRIPT_PATH);
-                system(command);
-            } else {
-                snprintf(command, sizeof(command), "%s adjust 8000", MOTOR_SCRIPT_PATH);
-                system(command);
-            }
-            
-            last_gpio_state = gpio_state;
+        } else if ((speed < 80) && (gpio_state == 1)) {
+            clear_display(fd);
+            print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+            print_text(fd, 1, 0, " WARNING");
+            print_text(fd, 2, 0, " HIGH SPEED: 80");
         }
         
         usleep(100000);
