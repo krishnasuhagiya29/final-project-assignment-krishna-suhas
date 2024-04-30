@@ -37,9 +37,6 @@ int get_speed() {
     if (retval < 0) {
         perror("Failed to read from socket");
         return -1; // Indicate error in reading
-    } else if (retval != 1) {
-        syslog(LOG_WARNING, "Partial data received. Expected 1 byte, received %ld bytes.", retval);
-        return -1; // Incorrect amount of data received
     }
 
     syslog(LOG_INFO, "Speed received as %d", speed);
@@ -93,7 +90,8 @@ int main(int argc, char **argv) {
     // Initialize and clear display (assuming these functions are defined correctly)
     init_display(fd);
     clear_display(fd);
-    
+    print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+    print_text(fd, 1, 0, " CLIENT RPI 3B");
     
     init_sw_gpio4();
     char command[100];
@@ -170,7 +168,10 @@ int main(int argc, char **argv) {
 
         // Check if the GPIO state has changed
         if (gpio_state != last_gpio_state) {
-
+            clear_display(fd);
+            print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
+            print_text(fd, 1, 0, " CLIENT RPI 3B");
+            print_text(fd, 2, 0, " SWITCH TOGGLED");
             if (gpio_state == 1) {
                 snprintf(command, sizeof(command), "%s adjust 18000", MOTOR_SCRIPT_PATH);
                 system(command);
