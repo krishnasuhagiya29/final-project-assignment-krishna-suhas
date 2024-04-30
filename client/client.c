@@ -38,8 +38,9 @@ int get_speed() {
         perror("Failed to read from socket");
         return -1; // Indicate error in reading
     }
-
-    syslog(LOG_INFO, "Speed received as %d", speed);
+    if (retval == 1) {
+        syslog(LOG_INFO, "Speed received as %d", speed);
+    }
     return speed; // Return the speed received
 }
 
@@ -135,6 +136,11 @@ int main(int argc, char **argv) {
             syslog(LOG_ERR, "Failed to get speed from server");
             cleanup_on_exit();
             exit(EXIT_FAILURE);
+        } else if (speed == 0) {
+            if (connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+            perror("Connection Failed");
+            exit(EXIT_FAILURE);
+            }
         }
         
         gpio_state = read_sw_gpio(GPIO_PIN);
