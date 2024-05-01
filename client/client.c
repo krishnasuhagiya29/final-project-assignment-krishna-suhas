@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
     // Initiate a connection to socket
     if (connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("Connection Failed");
-        exit(EXIT_FAILURE);
+        // exit(EXIT_FAILURE);
     }
 
     char speed_print[100];
@@ -230,10 +230,12 @@ int main(int argc, char **argv) {
         snprintf(speed_print, sizeof(speed_print), " SPEED LIMIT: %d", speed);
         
         if ((speed == 60) && (gpio_state == 0)) {
+            write_led_gpio(RED, 0);
+            write_led_gpio(YELLOW, 0);
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
-            print_text(fd, 2, 0, " SPEED LIMIT:   60");
-            print_text(fd, 3, 0, " CURRENT SPEED: 60");
+            print_text(fd, 1, 0, " SPEED LIMIT:   60");
+            print_text(fd, 2, 0, " CURRENT SPEED: 60");
         } else if ((speed == 80) && (gpio_state == 0)) {
             write_led_gpio(YELLOW, 1);
             clear_display(fd);
@@ -243,6 +245,8 @@ int main(int argc, char **argv) {
             print_text(fd, 3, 0, " WARNING: LOW SPEED");
             print_text(fd, 4, 0, " INCREASE SPEED");
         } else if ((speed == 80) && (gpio_state == 1)) {
+            write_led_gpio(RED, 0);
+            write_led_gpio(YELLOW, 0);
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, " SPEED LIMIT: 80");
@@ -256,7 +260,7 @@ int main(int argc, char **argv) {
             print_text(fd, 3, 0, " WARNING: HIGH SPEED");
             print_text(fd, 4, 0, " REDUCE SPEED");
         } else if ((speed < 60) && (gpio_state == 0)) {
-            write_led_gpio(YELLOW, 1);
+            write_led_gpio(RED, 1);
             clear_display(fd);
             print_text(fd, 0, 0, " SPEED LIMIT ASSIST"); 
             print_text(fd, 1, 0, (const char*)speed_print);
